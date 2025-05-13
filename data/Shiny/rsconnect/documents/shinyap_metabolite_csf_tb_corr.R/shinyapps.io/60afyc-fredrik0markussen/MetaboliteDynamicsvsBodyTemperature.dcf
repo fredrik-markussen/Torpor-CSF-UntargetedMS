@@ -1,0 +1,12 @@
+name: MetaboliteDynamicsvsBodyTemperature
+title: MetaboliteDynamicsvsBodyTemperature
+username: 60afyc-fredrik0markussen
+account: 60afyc-fredrik0markussen
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14321709
+bundleId: 10000615
+url: https://60afyc-fredrik0markussen.shinyapps.io/MetaboliteDynamicsvsBodyTemperature/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
