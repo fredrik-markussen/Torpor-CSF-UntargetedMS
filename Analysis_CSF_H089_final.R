@@ -69,9 +69,9 @@ qc <- H089 %>%
   filter(str_detect(sample, "QC")) %>%  
   select(6:ncol(.)) 
 
-norm <- apply(qc, 2, median, na.rm = TRUE) #calculates the median for each compound in the qc group
 
 met.sc <- H089
+
 # Apply sqrt transformation centering and scaling
 met.sc <- scale(sqrt(met.sc[,6:ncol(met.sc)]), center = T, scale = T)
 
@@ -144,11 +144,13 @@ df.t.unnorm.dens <-cbind(df.t[2], df.t[4:ncol(df.t)])%>%
   )
 
 
-
 #Drawing the 4 plots together
 grid.arrange(df.t.unnorm.dens,m.sc.dens, df.t.unnorm.box, m.sc.plot, ncol=2)
+
+
+
 ###############################################################################
-#Initial exploration using heatmap
+#Initial exploration using heat map
 ###############################################################################
 rownames(met.sc) <- H089[,3] #Making row names the samples_nr
 
@@ -218,7 +220,7 @@ heat.ordered <- Heatmap(
 ht <-draw(heat.ordered)
 
 
-#Some very clear patterns goin on here. clear effect on sample order. 
+#Some very clear patterns going on here. clear effect on sample order. 
 
 ###############################################################################
 #correlation analysis to make row order for heat map 
@@ -237,6 +239,7 @@ H089n <- met.sc
 #colnames(H089n)
 
 head(H089n[,1:8])
+
 #bind to get tb_mean
 H089n <- cbind(tb_mean = H089$tb_mean, H089n)
 H089n <- cbind(sample_nr = H089$sample_nr, H089n)
@@ -248,12 +251,12 @@ H089n <- H089n%>%filter(sample_nr >0)
 
 
 
-#do not detrend data for now
+#do not detrend data for now. Batch corrections applied in Compound Discoverer
 
 
 ################################################################################
 ################################################################################
-#Run correlation lag analyis
+#Run correlation lag analysis
 #in this order: Metabolite, Tb  positive lag indicates that change in Metabolite after change in body temperature
 #lag = 0	Metabolite and Tb change together (synchronous)
 #lag < 0	metabolite changes before Tb
@@ -271,7 +274,7 @@ ccf_result <- ccf(H089n$`Dodecanedioic Acid`,
 1.96 / sqrt(length(H089$tb_mean))
 
 #need to create a more formal calculation of the 95% CI since 1.96 / sqrt(length(H089$tb_mean) is only an approximation 
-#need to be done for every lag calculation. We can permute Tb to thest correlation angainst thid null distributiion at each lagged position. 
+#need to be done for every lag calculation. We can permute Tb to test correlation against thid null distributiion at each lagged position. 
 #probably computer heavy
 library(stats)
 library(purrr)
@@ -325,7 +328,7 @@ ccf_permutation_ci <- function(x, y, lag.max = 23, level = 0.99, n_perm = 1000, 
 
 
 #Set metabolite
-Met<- c("Dl-Glutamine")
+Met<- c("Creatine")
 
 #Run for metabolite of interest:
 ccf_result <- ccf_permutation_ci(H089n[[Met]], H089n$tb_mean, lag.max = 30, level = 0.99)
@@ -431,8 +434,8 @@ ccf_results <- future_map_dfr(
 
 summary(ccf_results)
 
-#store:
-write.csv(ccf_results, "./data/cross_correlation_permutation_results.csv")
+#STORE THIS RESULT!:
+#write.csv(ccf_results, "./data/cross_correlation_permutation_results.csv")
 
 ccf_results <- read.csv("./data/cross_correlation_permutation_results.csv")
 
@@ -444,7 +447,7 @@ ccf_results_filtered <- ccf_results%>% filter(significant)
 
 
 
-#Phase estimation, roguh estimate over the two cycles
+#Phase estimation, rough estimate over the two cycles
 #becomes a sort of "psudophase" over the two cycles since the period of the two phases ar asymmetric (unequal) 
 #But is acctualy a good estimate for the second cycle. 
 
@@ -485,9 +488,7 @@ ccf_results_filtered <- ccf_results_filtered %>%
        x = NULL, y = "Max Correlation"))
   
 head(ccf_results_filtered)
-#scale_color_manual(values = c("Precedes Tb" = "skyblue", 
- #                             "Synchronous" = "forestgreen", 
-  #                            "After Tb" = "firebrick")) +
+
 
 
 #one lag is 2 hours, which in turn corresponds to 6.9 degrees 
@@ -690,13 +691,18 @@ circos.heatmap(
 
 
 ################################################################################
-#Indovidual metabolite plots
+#Individual metabolite plots - arrange as needed
 ################################################################################
 library(reshape2)
 library(dplyr)
 library(ggplot2)
 
-Met <- c("Dl-Glutamine", "Dethiobiotin", "D-Pantothenic Acid")
+
+
+Met <-c("Dopamine", "Tyrosine", "Phenylalanine", "Adenosine", "Creatine")
+  
+#Met <- c("Dl-Carnitine","Acetylcarnitine","Glutarylcarnitine","3-Methylglutarylcarnitine", "Tiglylcarnitine","2-Hexenoylcarnitine")
+  
 
 # Melt and filter
 t <- cbind(df.t[3], met.sc) %>%
@@ -719,23 +725,24 @@ plot <- ggplot(t, aes(x = as.numeric(sample_nr) * 2, y = value)) +
   ) +
   geom_point(color = "gray15", size = 1) +
   geom_line(na.rm = TRUE, color = "gray15", linewidth = 0.5) +
-  facet_wrap(~ variable, ncol = 1, scales = "free_y") +
-  scale_y_continuous(
+  facet_wrap(~ variable, ncol = 2, scales = "free_y") +
+  scale_y_continuous( limits = c(-2,3),
     name = "Cluster Mean Abundance",
     sec.axis = sec_axis(~ . * 9 + 22, name = "Body Temperature (°C)")
   ) +
   scale_x_continuous(
     name = "Time (hours)",
-    breaks = seq(0, 220, 10)
+    breaks = seq(0, 220, 20)
   ) +
   labs(title = NULL) +
-  theme_classic(base_size = 14)
+  theme_classic(base_size = 16)+
+  theme(axis.text.x = element_text(angle = 45))
 
 plot
 
 filename <- paste0("./figures/", gsub(" ", "_", as.character(Met)), "_Tb_trace.svg")
 
-ggsave(filename, plot, width = 6, height = 4)
+#ggsave(filename, plot, width = 10, height =8)
 
 
 #loop for metabolites of interest:
@@ -747,57 +754,6 @@ metabolites <- c(
   "Aminolevulinic Acid", "Eugenol")
 
 
-
-#check if ok:
-Metabolites%>%filter(`unique(df_89_long$species)`%in% metabolites)
-
-
-# Loop over each metabolite
-for (Met in metabolites) {
-  
-  t <- cbind(df.t[3], met.sc) %>%
-    melt(id = "sample_nr") %>%
-    mutate(value = as.numeric(unlist(value))) %>%
-    filter(variable == Met, sample_nr > 0)
-  
-  plot <- ggplot(t, aes(x = as.numeric(sample_nr) * 2, y = as.numeric(value))) +
-    geom_ribbon(
-      data = H089n,inherit.aes = FALSE,
-      aes(
-        x = sample_nr * 2,
-        ymin = -2,
-        ymax = (tb_mean / 9) -2.5 + 0.1
-      ),
-      fill = "gray50",
-      alpha = 0.4)+
-    geom_point(color="gray15", size = 1)+
-    geom_line(na.rm = TRUE, color="gray15", linewidth = 0.5)+
-    
-    scale_y_continuous(
-      name = "Cluster Mean Abundance",
-      limits = c(-2, max(t$value)),
-      sec.axis = sec_axis(~ . * 9 + 22, name = "Body Temperature (°C)")
-    )+
-    scale_x_continuous(name = "Time (hours)",
-                       breaks = seq(0, 220, 10)
-    )+
-    labs(title =paste(Met)) + 
-    theme_classic()
-  
-  filename <- paste0("./figures/metabolite_profile_plots/", gsub(" ", "_", Met), "_Tb_trace.svg")
-  ggsave(filename, plot, width = 6, height = 4)
-}
-
-
-
-
-
-#geom_smooth(data = t %>% filter(as.numeric(sample_nr) >= 0),
- #           method = "loess", span = 0.3, se =F, linetype = "solid",
-  #          size = 0.9, color="#B71C71") +
-
-
-#
 ################################################################################
 #export data.
 ################################################################################
@@ -830,6 +786,12 @@ metabolite_tags_1 <- metabolite_tags%>%
 
 
 ccf_results_filtered_tag<-full_join(ccf_results_filtered, metabolite_tags_1)%>%relocate(tag)
+
+ccf_results_tag<-full_join(ccf_results, metabolite_tags_1)%>%relocate(tag)
+
+ccf_results_tag%>% filter(tag %in% c("F"))%>%
+  nrow()
+
 
 
 

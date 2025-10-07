@@ -16,7 +16,7 @@ df<- read.csv("data/250129_CSF-hamsters_Compounds_Fresdrik-Markussen.csv",fileEn
 
 str(df) 
 
-unique(df$Name) #check for unique metabolites
+d <- df$Name #check for unique metabolites
 
 #fill in all spaces in column headings with underscores
 colnames(df) <- gsub(" ", "_", colnames(df))
