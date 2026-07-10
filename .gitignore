@@ -1,0 +1,24 @@
+# R session files
+.Rproj.user
+.Rhistory
+.RData
+.RDataTmp*
+.Ruserdata
+*.Rproj
+.posit/
+
+# Not part of the H089 build
+figures/
+shiny/
+Analysis_CSF_H040_final.R
+
+# Track only the data the H089 scripts read as input.
+# Everything else under data/ is script output and is regenerable.
+data/*
+!data/250129_CSF-hamsters_Compounds_Fresdrik-Markussen.csv
+!data/250129_CSF-sample-renaming.csv
+!data/H089_temps_sampling_start.csv
+!data/H040_temps_sampling_start.csv
+!data/CSF_H089_final.csv
+!data/cross_correlation_permutation_results.csv
+!data/metabolite_tags.csv
