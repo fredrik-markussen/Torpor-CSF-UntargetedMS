@@ -3,7 +3,7 @@ This repository contains code and data accompanying the manuscript:
 
 *Proof of concept: Continuous sampling of cerebrospinal fluid from the 3rd ventricle of the hypothalamus to identify accumulating or depleting metabolites during hibernation.*  
 **Markussen F.A.F., Cázarez-Márquez F., Pitelkova I., Hazlerigg D.G.,
-Wood S.H. (2025).**
+Wood S.H. (2026).**
 
 DOI: [10.1242/jeb.251702](https://doi.org/10.1242/jeb.251702)
 
